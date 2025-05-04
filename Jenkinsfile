@@ -34,6 +34,7 @@ pipeline {
                 sh '''
                     echo "Verifying Google Chrome version..."
                     google-chrome-stable --version
+                    which google-chrome-stable
                 '''
             }
         }
