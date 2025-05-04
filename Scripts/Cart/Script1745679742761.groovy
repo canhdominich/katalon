@@ -18,7 +18,7 @@ import internal.GlobalVariable as GlobalVariable
 import org.openqa.selenium.Keys as Keys
 
 // Mở trình duyệt
-WebUI.openBrowser('')
+WebUI.openBrowser('https://laluz.vn')
 
 // Khai báo giá trị Name và Price kỳ vọng
 String expectedProductName = 'Roja Parfums Apex Eau Intense'
