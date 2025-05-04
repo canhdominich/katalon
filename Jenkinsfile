@@ -28,6 +28,15 @@ pipeline {
             }
         }
 
+        stage('Verify Chrome Installation') {
+            steps {
+                sh '''
+                    echo "Verifying Google Chrome version..."
+                    google-chrome-stable --version
+                '''
+            }
+        }
+
         stage('Execute Tests') {
             steps {
                 script {
