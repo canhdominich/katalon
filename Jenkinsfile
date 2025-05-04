@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        KATALON_VERSION = '10.2.0'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -11,11 +15,8 @@ pipeline {
         stage('Execute Tests') {
             steps {
                 executeKatalon(
-                    testSuitePath: 'Test Suites/TSLogin',
-                    browserType: 'Chrome (headless)',
-                    executionProfile: 'default',
-                    reportFolder: 'Reports',
-                    reportFileName: 'TestReport'
+                    version: env.KATALON_VERSION,
+                    executeArgs: "-runMode=console -projectPath=${WORKSPACE} -retry=0 -testSuitePath='Test Suites/TSLogin' -browserType='Chrome (headless)' -executionProfile='default' -reportFolder=${WORKSPACE}/Reports -reportFileName='TestReport'"
                 )
             }
         }
