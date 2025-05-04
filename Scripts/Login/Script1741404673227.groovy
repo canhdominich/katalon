@@ -1,7 +1,7 @@
 import static com.kms.katalon.core.testobject.ObjectRepository.findTestObject
 import com.kms.katalon.core.webui.keyword.WebUiBuiltInKeywords as WebUI
 
-WebUI.openBrowser('https://laluz.vn')
+WebUI.openBrowser('')
 
 WebUI.navigateToUrl('https://laluz.vn/login/')
 
