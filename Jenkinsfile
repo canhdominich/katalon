@@ -3,10 +3,15 @@ pipeline {
 
     environment {
         KATALON_VERSION = '10.2.0'
-        KATALON_KEY = 'fb4e1d81-f3d3-4190-9474-a37ce9801ad1'  // Đã điền key tại đây
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Prepare Workspace') {
             steps {
                 sh '''
@@ -18,6 +23,14 @@ pipeline {
                         exit 1
                     fi
 
+                    if [ ! -d "TestData" ]; then
+                        echo "ERROR: TestData directory not found!"
+                        exit 1
+                    fi
+
+                    echo "Checking Excel files..."
+                    ls -la TestData/
+
                     mkdir -p Reports
                 '''
             }
@@ -25,18 +38,15 @@ pipeline {
 
         stage('Execute Tests') {
             steps {
-                script {
-                    try {
-                        executeKatalon(
-                            version: env.KATALON_VERSION,
-                            executeArgs: "-runMode=console -projectPath=${WORKSPACE} -retry=0 -testSuitePath='Test Suites/TSLogin' -browserType='Chrome (headless)' -executionProfile='default' -reportFolder=${WORKSPACE}/Reports -reportFileName='TestReport' -apikey=${env.KATALON_KEY}"
-                        )
-                    } catch (Exception e) {
-                        echo "Test execution failed: ${e.message}"
-                        currentBuild.result = 'FAILURE'
-                        throw e
-                    }
-                }
+                sh '''
+                    # Tải và cài đặt Katalon Studio
+                    wget -q -O katalon.zip https://download.katalon.com/${KATALON_VERSION}/Katalon_Studio_Linux_64-${KATALON_VERSION}.zip
+                    unzip -q katalon.zip -d katalon
+                    chmod +x katalon/Katalon_Studio_Linux_64-${KATALON_VERSION}/katalon
+
+                    # Chạy test
+                    ./katalon/Katalon_Studio_Linux_64-${KATALON_VERSION}/katalon -noSplash -runMode=console -projectPath=${WORKSPACE} -retry=0 -testSuitePath="Test Suites/TSLogin" -browserType="Chrome (headless)" -executionProfile="default" -reportFolder=${WORKSPACE}/Reports -reportFileName="TestReport"
+                '''
             }
         }
 
@@ -46,7 +56,7 @@ pipeline {
                     if (fileExists('Reports')) {
                         sh 'ls -la Reports/'
 
-                        def reportPath = sh(script: 'find Reports -type d -name "TSLogin" | head -n 1', returnStdout: true).trim()
+                        def reportPath = sh(script: 'find Reports -type d -name "TSLogin*" | sort -r | head -n 1', returnStdout: true).trim()
                         if (reportPath) {
                             echo "Found report directory at: ${reportPath}"
                             publishHTML([
