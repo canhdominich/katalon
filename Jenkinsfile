@@ -4,9 +4,26 @@ pipeline {
     environment {
         KATALON_VERSION = '10.2.0'
         KATALON_KEY = 'fb4e1d81-f3d3-4190-9474-a37ce9801ad1'
+        CHROME_BIN = '/usr/bin/google-chrome-stable'
     }
 
     stages {
+        stage('Setup Environment') {
+            steps {
+                sh '''
+                    # Install Chrome and dependencies
+                    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+                    sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+                    sudo apt-get update
+                    sudo apt-get install -y google-chrome-stable xvfb
+                    
+                    # Verify Chrome installation
+                    google-chrome-stable --version
+                    which google-chrome-stable
+                '''
+            }
+        }
+
         stage('Prepare Workspace') {
             steps {
                 sh '''
@@ -23,28 +40,29 @@ pipeline {
             }
         }
 
-        stage('Verify Chrome Installation') {
-            steps {
-                sh '''
-                    echo "Verifying Google Chrome version..."
-                    google-chrome-stable --version
-                    which google-chrome-stable
-                '''
-            }
-        }
-
         stage('Execute Tests') {
             steps {
                 script {
                     try {
+                        sh '''
+                            # Start Xvfb
+                            Xvfb :99 -screen 0 1280x1024x24 &
+                            export DISPLAY=:99
+                        '''
+                        
                         executeKatalon(
                             version: env.KATALON_VERSION,
-                            executeArgs: "-runMode=console -projectPath=${WORKSPACE} -retry=0 -testSuitePath='Test Suites/TSLogin' -browserType='Chrome (headless)' -executionProfile='default' -reportFolder=${WORKSPACE}/Reports -reportFileName='TestReport' -apikey=${env.KATALON_KEY} --config -webui.autoUpdateDrivers=true"
+                            executeArgs: "-runMode=console -projectPath=${WORKSPACE} -retry=0 -testSuitePath='Test Suites/TSLogin' -browserType='Chrome (headless)' -executionProfile='default' -reportFolder=${WORKSPACE}/Reports -reportFileName='TestReport' -apikey=${env.KATALON_KEY} --config -webui.autoUpdateDrivers=true -webui.chrome.driverPath=/usr/bin/chromedriver"
                         )
                     } catch (Exception e) {
                         echo "Test execution failed: ${e.message}"
                         currentBuild.result = 'FAILURE'
                         throw e
+                    } finally {
+                        sh '''
+                            # Cleanup Xvfb
+                            pkill Xvfb
+                        '''
                     }
                 }
             }
@@ -77,4 +95,4 @@ pipeline {
             }
         }
     }
-}
+} 
