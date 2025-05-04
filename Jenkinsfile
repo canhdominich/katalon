@@ -1,23 +1,12 @@
 pipeline {
-    agent {
-        docker {
-            image 'jenkins/jenkins:lts'
-            args '-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker'
-        }
-    }
+    agent any
 
     environment {
         KATALON_VERSION = '10.2.0'
-        KATALON_KEY = 'fb4e1d81-f3d3-4190-9474-a37ce9801ad1'
+        KATALON_KEY = 'fb4e1d81-f3d3-4190-9474-a37ce9801ad1'  // Đã điền key tại đây
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Prepare Workspace') {
             steps {
                 sh '''
@@ -28,14 +17,6 @@ pipeline {
                         echo "ERROR: Test Suites directory not found!"
                         exit 1
                     fi
-
-                    if [ ! -d "TestData" ]; then
-                        echo "ERROR: TestData directory not found!"
-                        exit 1
-                    fi
-
-                    echo "Checking Excel files..."
-                    ls -la TestData/
 
                     mkdir -p Reports
                 '''
@@ -65,7 +46,7 @@ pipeline {
                     if (fileExists('Reports')) {
                         sh 'ls -la Reports/'
 
-                        def reportPath = sh(script: 'find Reports -type d -name "TSLogin*" | sort -r | head -n 1', returnStdout: true).trim()
+                        def reportPath = sh(script: 'find Reports -type d -name "TSLogin" | head -n 1', returnStdout: true).trim()
                         if (reportPath) {
                             echo "Found report directory at: ${reportPath}"
                             publishHTML([
