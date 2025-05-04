@@ -4,6 +4,7 @@ pipeline {
     environment {
         KATALON_VERSION = '10.2.0'
         KATALON_KEY = 'fb4e1d81-f3d3-4190-9474-a37ce9801ad1'  // Đã điền key tại đây
+        CHROME_BIN = '/usr/bin/google-chrome-stable'  // Đường dẫn đến Chrome cài đặt trong Docker container
     }
 
     stages {
@@ -43,7 +44,7 @@ pipeline {
                     try {
                         executeKatalon(
                             version: env.KATALON_VERSION,
-                            executeArgs: "-runMode=console -projectPath=${WORKSPACE} -retry=0 -testSuitePath='Test Suites/TSLogin' -browserType='Chrome (headless)' -executionProfile='default' -reportFolder=${WORKSPACE}/Reports -reportFileName='TestReport' -apikey=${env.KATALON_KEY}"
+                            executeArgs: "-runMode=console -projectPath=${WORKSPACE} -retry=0 -testSuitePath='Test Suites/TSLogin' -browserType='Chrome (headless)' -executionProfile='default' -reportFolder=${WORKSPACE}/Reports -reportFileName='TestReport' -apikey=${env.KATALON_KEY} -chromePath=${env.CHROME_BIN}"
                         )
                     } catch (Exception e) {
                         echo "Test execution failed: ${e.message}"
