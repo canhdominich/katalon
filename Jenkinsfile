@@ -13,6 +13,11 @@ pipeline {
                     echo "Checking workspace structure..."
                     ls -la
 
+                    if [ ! -f ".project" ] || [ ! -f ".classpath" ]; then
+                        echo "ERROR: Not a valid Katalon project!"
+                        exit 1
+                    fi
+
                     if [ ! -d "Test Suites" ]; then
                         echo "ERROR: Test Suites directory not found!"
                         exit 1
@@ -29,7 +34,7 @@ pipeline {
                     try {
                         executeKatalon(
                             version: env.KATALON_VERSION,
-                            executeArgs: "-runMode=console -projectPath=${WORKSPACE} -retry=0 -testSuitePath='Test Suites/TSLogin' -browserType='Chrome (headless)' -executionProfile='default' -reportFolder=${WORKSPACE}/Reports -reportFileName='TestReport' -apikey=${env.KATALON_KEY} --config -webui.autoUpdateDrivers=true",
+                            executeArgs: "-runMode=console -projectPath=${WORKSPACE} -retry=0 -testSuitePath='Test Suites/TSLogin' -browserType='Chrome (headless)' -executionProfile='default' -reportFolder=${WORKSPACE}/Reports -reportFileName='TestReport' -apikey=${env.KATALON_KEY}"
                         )
                     } catch (Exception e) {
                         echo "Test execution failed: ${e.message}"
